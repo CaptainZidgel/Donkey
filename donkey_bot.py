@@ -11,7 +11,7 @@ prefix = "+"
 #client = discord.Client()
 vclient = discord.VoiceClient
 guild = discord.Guild
-
+#song = discord.FFmpegPCMAudio('fx/announcer_well_done.mp3',executable='ffmpeg')
 
 bot = commands.Bot(command_prefix=prefix) 
 
@@ -58,10 +58,24 @@ async def get(ctx, game:str):
 					break
 		elif game == "CSGO":
 			feed = feedparser.parse('http://blog.counter-strike.net/index.php/category/updates/feed/')
-			i = feed.entries[0] #for i in feed.entries:
+			i = feed.entries[0]
 			await ctx.send(i.link)                  
 			await ctx.send(i.title + " " + i.published)
 			await ctx.send(multireplace(["<p>", "</p>", "<br />"],"", html.unescape(i.content[0].value)))
+		elif game == "news":
+			feed = feedparser.parse('news feed') # You can put a very long news feed here, this code will enable up to 10,000 characters to be pasted via 4 messages.
+			i = feed.entries[0]
+			await ctx.send(i.link)                  
+			await ctx.send(i.title + " " + i.published)
+			text = multireplace(["<p>", "</p>", "<br />"],"", html.unescape(i.content[0].value)) # unfortunately depending on the feed there are too many things to cut out.
+			if len(text) > 2000:
+				await ctx.send(text[:2001])
+				await ctx.send(text[2001:4001])
+				await ctx.send(text[4001:6001])
+				await ctx.send(text[6001:10001])
+			else:
+				await ctx.send(text)
+			
 					
 @bot.command()
 async def join(ctx):
@@ -74,14 +88,17 @@ async def leave(ctx):
 	voice = ctx.guild.voice_client
 	await voice.disconnect()
 
-# @bot.command()
+@bot.command()
+async def add(ctx, *, link:str, name:str):
+		feed = feedparser.parse(link)
+		i = feed.entries[0]
+		await ctx.send(i.title)
+
+# @bot.command() # I'm not sure I'll ever get this working. There doesn't appear to be sufficient documentation online with solid examples and guiding, only API refernece.
 # async def playsound(ctx):
-	# user = ctx.message.author
-	# voice_channel = user.voice.channel
-	# channel = voice_channel.name
+	# #chan = ctx.message.author.voice.channel
 	# vc = ctx.message.author.voice.channel
-	# player = vc.create_ffmpeg_player('announce_well_done.mp3')
-	# player.start()
+	# vclient.play(source)
 	# while not player.is_done():
 		# await asyncio.sleep(1)
 	# player.stop()

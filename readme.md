@@ -15,3 +15,5 @@ enable subscriptions to Minecraft update messages. Need minecraft to fix their R
 enable 24/7 [pizza music](https://www.youtube.com/watch?v=XW0W7j04iRQ) in voice channel. Need to learn voice API first.  
 enable subscriptions to youtube channels, probably won't get added in because Youtube's API looks complicated and I hate learning things  
 whatever else I want to put in B^)  
+
+A lot of what I want(ed) to add seems beyond my ability at this point. This bot was never meant to really have a function, just be functional. So for now you can +ping and +exit the bot to your heart's content. You can even make it +join and +leave voice channels! It just can't do anything there.
