@@ -4,6 +4,8 @@ from discord.voice_client import VoiceClient
 from discord.utils import get
 import feedparser
 import html
+import re
+import csv
 
 token = open("token.txt","r").read()
 
@@ -75,8 +77,26 @@ async def get(ctx, game:str):
 				await ctx.send(text[6001:10001])
 			else:
 				await ctx.send(text)
-			
-					
+		else:
+			with open('feeds.csv','r') as f:
+				readCSV = csv.reader(f, delimiter=',')
+				for row in readCSV:
+					if row[0] == game:
+						feed = feedparser.parse(row[1])
+						i = feed.entries[0]
+						await ctx.send(i.link)                  
+						await ctx.send(i.title + " " + i.published)
+						if row[2] == "no":
+							await ctx.send(re.sub('<[^>]+>', '', html.unescape(i.content[0].value)))
+						else:
+							text = re.sub('<[^>]+>', '', html.unescape(i.content[0].value))
+							await ctx.send(text[:2000])
+							await ctx.send(text[2000:4000])
+							await ctx.send(text[4000:6000])
+							await ctx.send(text[6000:10000])
+						break
+					else:
+						print("False")
 @bot.command()
 async def join(ctx):
 	channel = ctx.message.author.voice.channel
@@ -89,11 +109,10 @@ async def leave(ctx):
 	await voice.disconnect()
 
 @bot.command()
-async def add(ctx, *, link:str, name:str):
-		feed = feedparser.parse(link)
-		i = feed.entries[0]
-		await ctx.send(i.title)
-
+async def add(ctx, link:str, name:str, long:str):
+		with open('feeds.csv', 'a') as f:
+			f.write(name + "," + link + "," + long + "\n")
+		
 # @bot.command() # I'm not sure I'll ever get this working. There doesn't appear to be sufficient documentation online with solid examples and guiding, only API refernece.
 # async def playsound(ctx):
 	# #chan = ctx.message.author.voice.channel
