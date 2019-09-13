@@ -81,19 +81,20 @@ async def get(ctx, game:str):
 			with open('feeds.csv','r') as f:
 				readCSV = csv.reader(f, delimiter=',')
 				for row in readCSV:
-					if row[0] == game:
-						feed = feedparser.parse(row[1])
+					if row[1] == game:
+						feed = feedparser.parse(row[2])
 						i = feed.entries[0]
 						await ctx.send(i.link)                  
 						await ctx.send(i.title + " " + i.published)
-						if row[2] == "no":
-							await ctx.send(re.sub('<[^>]+>', '', html.unescape(i.content[0].value)))
-						else:
-							text = re.sub('<[^>]+>', '', html.unescape(i.content[0].value))
-							await ctx.send(text[:2000])
-							await ctx.send(text[2000:4000])
-							await ctx.send(text[4000:6000])
-							await ctx.send(text[6000:10000])
+						if row[0] != "yt":
+							if row[3] != "yes":
+								await ctx.send(re.sub('<[^>]+>', '', html.unescape(i.content[0].value)))
+							else:
+								text = re.sub('<[^>]+>', '', html.unescape(i.content[0].value))
+								await ctx.send(text[:2000])
+								await ctx.send(text[2000:4000])
+								await ctx.send(text[4000:6000])
+								await ctx.send(text[6000:10000])
 						break
 					else:
 						print("False")
@@ -109,10 +110,16 @@ async def leave(ctx):
 	await voice.disconnect()
 
 @bot.command()
-async def add(ctx, link:str, name:str, long:str):
+async def add(ctx, link:str, name:str, long:str = "no"):
+		if link.startswith('https://www.youtube.com') or link.startswith('www.youtube.com'):
+			type = "yt"
+		else:
+			type = "text"
 		with open('feeds.csv', 'a') as f:
-			f.write(name + "," + link + "," + long + "\n")
-		
+			if type == "yt":
+				link = link.replace('channel/', 'feeds/videos.xml?channel_id=')
+			f.write(type + "," + name + "," + link + "," + long + "\n")
+			
 # @bot.command() # I'm not sure I'll ever get this working. There doesn't appear to be sufficient documentation online with solid examples and guiding, only API refernece.
 # async def playsound(ctx):
 	# #chan = ctx.message.author.voice.channel
