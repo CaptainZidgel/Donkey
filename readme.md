@@ -7,8 +7,9 @@ Commands:
 **+get** - gets the latest post from a feed! You need to +add one first. params: +get (feed name) <include description? default yes>  
 **+hello** - greets you  
 **+ping** - pong  
-**+add** - Add a feed to +get, params: "+add (link) (name) <will the posts be long? default no> <only show posts titled:>" example: +add http://www.teamfortress.com/rss.xml TF2 "Team Fortress 2 Update Released"  
+**+add** - Add a feed to +get, params: "+add (link) (name) <only show posts titled:>" example: +add http://www.teamfortress.com/rss.xml TF2 "Team Fortress 2 Update Released"  
 **+sub** - Subscribe to a feed, with new posts to be posted in the channel the command was sent in. Params: +sub (name of the feed you want to sub to)  
+**+remove** - Remove a feed from your collection. Params: +remove (feed name)  
 ALWAYS remember the https:// and www. where applicable.  
 param key: `(required)` `<optional>`
   
@@ -16,13 +17,9 @@ Roadmap
 -------
 **Long term**  
 enable 24/7 [pizza music](https://www.youtube.com/watch?v=XW0W7j04iRQ) in voice channel. Need to learn voice API first.  
-enable subscriptions to youtube channels, (Youtube supports RSS feeds for individual channels so this is in the works! You can +add YT channels)  
 whatever else I want to put in B^)  
 **Short term**  
-Error messages/foolproofing  
-Some sort of fix for making sure no matter what kind of tree a feed uses, it's readable.  
-A flag for showing full post or just the basics for +get  
-
+Error messages/foolproofing   
 
 A lot of what I want(ed) to add seems beyond my ability at this point. This bot was never meant to really have a function, just be functional. So for now you can +ping and +exit the bot to your heart's content. You can even make it +join and +leave voice channels! It just can't do anything there.  
 

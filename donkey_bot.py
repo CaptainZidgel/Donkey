@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.utils import get
 import feedparser
 import html
 import re
@@ -14,6 +13,7 @@ guild = discord.Guild
 bot = commands.Bot(command_prefix=prefix) 
 delim = "|"
 lastposts = {}
+allfeeds = []
 
 @bot.event
 async def on_ready():
@@ -52,33 +52,34 @@ async def post(c, fName, descr="yes", t_o_feed=""):
 		return feed.entries[0].title
 	else:	
 		channel = bot.get_channel(c)
-		with open('feeds.csv','r') as f:
-			readCSV = csv.reader(f, delimiter=delim)
-			for row in readCSV:
-				if row[1] == fName.lower():                         #checks rows until it comes to the requested feed
-					feed = feedparser.parse(row[2])         #sets the feed to the feedlink
-					i = ""                                  #creates a string to eventually hold a post
-					if row[4] == "null":					#if there is no title inclusion value, sets the post to the latest entry
-						i = feed.entries[0]
-					else:									#otherwise... find the latest post with the wanted title	
-						iterate = 0
-						for iter in feed.entries:
-							if iter.title == row[4]:		#is the title of this particular post in this particular feed, the title I asked for?
-								i = feed.entries[iterate]	#this post will be the particular post I get the title, link and description from
-								break
-							iterate = iterate + 1
-					await channel.send(i.link)				#post the link to the latest post
-					await channel.send(i.title + " " + i.published) #post the title and datetime
-					if row[0] != "yt" and descr != "no":            #if description is wanted
-						if row[3] == "no":							#if post is expected to be long. I may at some point make this automatic with len().
-							await channel.send(re.sub('<[^>]+>', '', html.unescape(i.description))) #send the description, sans some unwanted characters.
-						else:										
-							text = re.sub('<[^>]+>', '', html.unescape(i.description))
-							await channel.send(text[:2001])
+		for f in allfeeds:
+			if f['name'] == fName.lower():              #checks rows until it comes to the requested feed
+				feed = feedparser.parse(f['link'])         #sets the feed to the feedlink
+				i = ""                                  #creates a string to eventually hold a post
+				if f['inclusion'] == "null":					#if there is no title inclusion value, sets the post to the latest entry
+					i = feed.entries[0]
+				else:									#otherwise... find the latest post with the wanted title	
+					iterate = 0
+					for iter in feed.entries:
+						if iter.title == row[4]:		#is the title of this particular post in this particular feed, the title I asked for?
+							i = feed.entries[iterate]	#this post will be the particular post I get the title, link and description from
+							break
+						iterate = iterate + 1
+				await channel.send(i.link)				#post the link to the latest post
+				await channel.send(i.title + " " + i.published) #post the title and datetime
+				if f['type'] != "yt" and descr != "no":            #if description is wanted
+					if len(i.description) < 2000:					#not all feed descriptions include a full post. Sometimes it's the summary.
+						await channel.send(re.sub('<[^>]+>', '', html.unescape(i.description))) #send the description, sans some unwanted characters.
+					else:										
+						text = re.sub('<[^>]+>', '', html.unescape(i.description))
+						await channel.send(text[:2001])
+						if len(text) > 2000:
 							await channel.send(text[2001:4001])
-							await channel.send(text[4001:6001])
-							await channel.send(text[6001:10001])
-					break
+							if len(text) > 4000:
+								await channel.send(text[4001:6001])
+								if len(text) > 10000:
+									await channel.send(text[6001:10001])
+				break
 					
 @bot.command()
 async def join(ctx):
@@ -92,51 +93,40 @@ async def leave(ctx):
 	await voice.disconnect()
 
 @bot.command()
-async def add(ctx, link:str, name:str, long:str = "no", inclusion="null"):
-	f = open('feeds.csv','r')
-	readCSV = csv.reader(f, delimiter=delim)
-	for row in readCSV:
-		if row[1] == name:
-			ctx.send("Hey a feed already exists with that name. I don't know how to ask you for confirmation within a command so you'll need to +remove the feed!")
-			return "Found a dupe!"
-	f.close()	
-		
+async def add(ctx, link:str, name:str, inclusion="null"):
+	for f in allfeeds:
+		if f['name'] == name:
+			print("There's already a feed with that name!")
+			return
 	if link.startswith('https://www.youtube.com') or link.startswith('www.youtube.com'):
 		type = "yt"
+		link = link.replace('channel/', 'feeds/videos.xml?channel_id=')	
 	else:
-		type = "text"
-	with open('feeds.csv', 'a') as f:
-		if type == "yt":
-			link = link.replace('channel/', 'feeds/videos.xml?channel_id=')
-		f.write(type +delim + name.lower() + delim+ link +delim+long+delim+inclusion+ "\n")
-	print("Printed something to feeds")
+		type = "text"	
+	feed = {
+	'name': name,
+	'link': link,
+	'inclusion': inclusion,
+	'type': type
+	}
+	allfeeds.append(feed)
 		
 @bot.command()
 async def sub(ctx, name:str):
 	copy = "empty"
-	with open('feeds.csv','r') as f:
-		readCSV = csv.reader(f, delimiter=delim)
-		for row in readCSV:
-			if row[1] == name:
-				copy = row[0]+delim+row[1]+delim+row[2]+delim+row[3]+delim
+	for f in allfeeds:
+		if f['name'] == name:
+			copy = f['type']+delim+f['name']+delim+f['link']
+
 	with open('subs.csv','a') as f:
-		f.write(copy + str(ctx.channel.id)+delim + "\n")
+		f.write(copy + delim + str(ctx.channel.id)+delim + "\n")
 	lastposts[name] = ""
 
 @bot.command()
-async def remove(ctx, name:str): #look ive spent about the past 6 hours working on this and I can't get it to work.
-	the_line = 0					#I'll keep working on it in the future.
-	with open('feeds.csv','r+') as f:
-		line = 0
-		readCSV = csv.reader(f, delimiter=delim)
-		writeCSV = csv.writer(f, delimiter=delim)
-		for row in readCSV:
-			line = line + 1
-			print("Line")
-			if row[1] == name:
-				row[0] = "Wowee!" #This is where the row would be deleted. For testing purposes I just tried to change the first value.
-				writeCSV.writerow(row) #I've also tried seek() and right()
-				break
+async def remove(ctx, name:str):
+	for f in allfeeds:
+		if f['name'] == name:
+			allfeeds.remove(f)
 		
 async def task():
 	while True:
