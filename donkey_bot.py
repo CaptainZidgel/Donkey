@@ -18,6 +18,18 @@ allfeeds = []
 @bot.event
 async def on_ready():
 	print('We have logged in as {0.user}'.format(bot))
+	with open('feeds.csv','r') as file:
+		readCSV = csv.reader(file, delimiter=delim)
+		for row in readCSV:
+			feed = {
+			'name': row[1],
+			'link': row[2],
+			'inclusion': row[3],
+			'type': row[0]
+			}
+			allfeeds.append(feed)
+		print('Saved feeds loaded from feeds.csv')
+		print(str(allfeeds))
 	bot.loop.create_task(task())
 	
 @bot.event
@@ -28,6 +40,9 @@ async def on_message(message):
 
 @bot.command()
 async def exit(ctx):
+	with open('feeds.csv','w') as file:
+		for feed in allfeeds:
+			file.write(feed['type'] + delim + feed['name'] + delim + feed['link'] + delim + feed['inclusion'] + "\n")
 	await bot.close()
 	
 @bot.command()
@@ -61,7 +76,7 @@ async def post(c, fName, descr="yes", t_o_feed=""):
 				else:									#otherwise... find the latest post with the wanted title	
 					iterate = 0
 					for iter in feed.entries:
-						if iter.title == row[4]:		#is the title of this particular post in this particular feed, the title I asked for?
+						if iter.title == f['inclusion']:		#is the title of this particular post in this particular feed, the title I asked for?
 							i = feed.entries[iterate]	#this post will be the particular post I get the title, link and description from
 							break
 						iterate = iterate + 1
@@ -95,7 +110,7 @@ async def leave(ctx):
 @bot.command()
 async def add(ctx, link:str, name:str, inclusion="null"):
 	for f in allfeeds:
-		if f['name'] == name:
+		if f['name'] == name.lower():
 			print("There's already a feed with that name!")
 			return
 	if link.startswith('https://www.youtube.com') or link.startswith('www.youtube.com'):
@@ -104,7 +119,7 @@ async def add(ctx, link:str, name:str, inclusion="null"):
 	else:
 		type = "text"	
 	feed = {
-	'name': name,
+	'name': name.lower(),
 	'link': link,
 	'inclusion': inclusion,
 	'type': type
