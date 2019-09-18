@@ -29,8 +29,7 @@ async def on_ready():
 			}
 			allfeeds.append(feed)
 		print('Saved feeds loaded from feeds.csv')
-		print(str(allfeeds))
-	bot.loop.create_task(task())
+	bot.loop.create_task(fetch_subs())
 	
 @bot.event
 async def on_message(message):
@@ -40,11 +39,14 @@ async def on_message(message):
 
 @bot.command()
 async def exit(ctx):
+	await save()
+	await bot.close()
+
+async def save():
 	with open('feeds.csv','w') as file:
 		for feed in allfeeds:
 			file.write(feed['type'] + delim + feed['name'] + delim + feed['link'] + delim + feed['inclusion'] + "\n")
-	await bot.close()
-	
+			
 @bot.command()
 async def ping(ctx):
 	await ctx.send("pong")
@@ -125,25 +127,41 @@ async def add(ctx, link:str, name:str, inclusion="null"):
 	'type': type
 	}
 	allfeeds.append(feed)
+	await save()	
 		
 @bot.command()
 async def sub(ctx, name:str):
 	copy = "empty"
+	l = ""
 	for f in allfeeds:
 		if f['name'] == name:
 			copy = f['type']+delim+f['name']+delim+f['link']
+			l = f['link']
 
 	with open('subs.csv','a') as f:
-		f.write(copy + delim + str(ctx.channel.id)+delim + "\n")
-	lastposts[name] = ""
+		f.write(copy + delim + str(ctx.channel.id) + "\n")
+	lastposts[name] = await post(0, "none", "send_nothing", l)
+	
+@bot.command()
+async def unsub(ctx, name:str):
+	subs = []
+	with open('subs.csv','r') as f:
+		readCSV = csv.reader(f, delimiter=delim)
+		for row in readCSV:
+			if row[1] != name:
+				subs.append(row)
+	with open('subs.csv','w') as f:
+		for s in subs:
+			f.write(s[0]+delim+s[1]+delim+s[2]+delim+s[3]+"\n")
 
 @bot.command()
 async def remove(ctx, name:str):
 	for f in allfeeds:
 		if f['name'] == name:
 			allfeeds.remove(f)
+	await save()	
 		
-async def task():
+async def fetch_subs():
 	while True:
 		await asyncio.sleep(30)
 		print("30 seconds have elapsed")
@@ -156,9 +174,9 @@ async def task():
 				if lastposts[row[1]] == newpost:
 					print("Last post same")
 				else:
-					await post(int(row[4]), row[1])
+					await post(int(row[3]), row[1])
 					lastposts[row[1]] = newpost
-			
+					
 # @bot.command() # I'm not sure I'll ever get this working. There doesn't appear to be sufficient documentation online with solid examples and guiding, only API refernece.
 # async def playsound(ctx):                    #since i cleaned up some stuff im not using because this is commented out, here's
 	# #chan = ctx.message.author.voice.channel #what i removed

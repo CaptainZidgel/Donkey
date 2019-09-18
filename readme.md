@@ -10,6 +10,7 @@ Commands:
 **+add** - Add a feed to +get, params: "+add (link) (name) <only show posts titled:>" example: +add http://www.teamfortress.com/rss.xml TF2 "Team Fortress 2 Update Released"  
 **+sub** - Subscribe to a feed, with new posts to be posted in the channel the command was sent in. Params: +sub (name of the feed you want to sub to)  
 **+remove** - Remove a feed from your collection. Params: +remove (feed name)  
+**+unsub** - Unsubscribe. Params: +unsub (feed name)
 ALWAYS remember the https:// and www. where applicable.  
 param key: `(required)` `<optional>`
   
