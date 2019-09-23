@@ -1,0 +1,7 @@
+discord
+discord.ext
+feedparser
+html
+re
+csv
+asyncio
