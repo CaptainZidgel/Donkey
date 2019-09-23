@@ -186,4 +186,4 @@ async def fetch_subs():
 		# await asyncio.sleep(1)
 	# player.stop()
 	
-bot.run(token)
+bot.run(BOT_TOKEN)
