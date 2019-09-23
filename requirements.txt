@@ -1,6 +1,5 @@
 discord.py
 feedparser
-html
 re
 csv
 asyncio
