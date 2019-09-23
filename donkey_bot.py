@@ -86,9 +86,9 @@ async def post(c, fName, descr="yes", t_o_feed=""):
 				await channel.send(i.title + " " + i.published) #post the title and datetime
 				if f['type'] != "yt" and descr != "no":            #if description is wanted
 					if len(i.description) < 2000:					#not all feed descriptions include a full post. Sometimes it's the summary.
-						await channel.send(re.sub('<[^>]+>', '', html.unescape(i.description))) #send the description, sans some unwanted characters.
+						await channel.send(re.sub('<[^>]+>', '', i.description)) #send the description, sans some unwanted characters.
 					else:										
-						text = re.sub('<[^>]+>', '', html.unescape(i.description))
+						text = re.sub('<[^>]+>', '', i.description)
 						await channel.send(text[:2001])
 						if len(text) > 2000:
 							await channel.send(text[2001:4001])
